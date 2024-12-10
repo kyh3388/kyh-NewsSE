@@ -1,0 +1,171 @@
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import './MainPage.css';
+
+/*************** 시간 표시를 위한 함수 ***************/
+function formatTimeDifference(pubDate) {
+    const publishedDate = new Date(pubDate);
+    const now = new Date();
+    const diffInMs = now - publishedDate;
+    const diffInMinutes = Math.floor(diffInMs / 60000);
+
+    if (diffInMinutes < 1) return '방금 전';
+    if (diffInMinutes < 60) return `${diffInMinutes}분 전`;
+
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours}시간 전`;
+
+    return `${publishedDate.getMonth() + 1}.${publishedDate.getDate()}`;
+}
+
+/********** API 응답 데이터 HTML 표시 문제 해결 **********/
+function decodeHtmlEntities(str) {
+    const parser = new DOMParser();
+    return parser.parseFromString(str, 'text/html').documentElement.textContent;
+}
+
+function MainPage() {
+    const [news, setNews] = useState([]); // 모든 기사를 저장
+    const [page, setPage] = useState(1); // 현재 페이지 상태
+    const displayCount = 36; // 한 번에 가져올 기사 수
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchHistory, setSearchHistory] = useState([]);
+    const [isSearchFocused, setIsSearchFocused] = useState(false);
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    // 초기 데이터 로드
+    useEffect(() => {
+        fetchNews(1, '기사');
+    }, []);
+
+    // 뉴스 데이터 요청
+    const fetchNews = (currentPage, query) => {
+        const start = (currentPage - 1) * displayCount + 1;
+        const searchTerm = query && query.trim() !== '' ? query : '기사';
+
+        axios
+            .get(`http://localhost:8080/searchNews?query=${searchTerm}&display=${displayCount}&start=${start}`)
+            .then((response) => {
+                const processedNews = response.data.items.map((item) => ({
+                    ...item,
+                    title: decodeHtmlEntities(item.title),
+                    description: decodeHtmlEntities(item.description),
+                    formattedPubDate: formatTimeDifference(item.pubDate),
+                }));
+                setNews((prevNews) => [...prevNews, ...processedNews]); // 기존 데이터에 새 데이터 추가
+            })
+            .catch((error) => console.error('Error fetching news:', error));
+    };
+
+    // 검색 버튼 클릭 이벤트
+    const handleSearch = () => {
+        if (searchQuery.trim() === '') return;
+
+        // 검색 기록 저장
+        if (!searchHistory.includes(searchQuery)) {
+            const updatedHistory = [searchQuery, ...searchHistory.slice(0, 9)];
+            setSearchHistory(updatedHistory);
+            localStorage.setItem('searchHistory', JSON.stringify(updatedHistory));
+        }
+
+        // 데이터 초기화 후 새 검색어로 기사 가져오기
+        setNews([]);
+        setPage(1);
+        fetchNews(1, searchQuery);
+        navigate(`?query=${encodeURIComponent(searchQuery.trim())}`);
+    };
+
+    // "기사 더보기" 버튼 클릭
+    const handleLoadMore = () => {
+        const nextPage = page + 1;
+        setPage(nextPage);
+        fetchNews(nextPage, searchQuery);
+    };
+
+    return (
+        <div className="MainPage">
+            <div className="mainpage-head">
+                <h1 className="header-title">
+                    <a href="/" style={{ textDecoration: 'none', color: 'black' }}>
+                        News SE
+                    </a>
+                </h1>
+                <div style={{ position: 'relative' }}>
+                    <div className="search-box">
+                        <input
+                            type="text"
+                            className="search-text"
+                            placeholder="뉴스 검색"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onFocus={() => setIsSearchFocused(true)}
+                            onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+                        />
+                        <button type="button" className="search-button" onClick={handleSearch} />
+                    </div>
+                    {isSearchFocused && (
+                        <div className="search-history">
+                            <ul>
+                                {searchHistory.map((historyItem, index) => (
+                                    <li
+                                        key={index}
+                                        className="history-item"
+                                        onClick={() => {
+                                            setSearchQuery(historyItem);
+                                            fetchNews(1, historyItem);
+                                            navigate(`?query=${encodeURIComponent(historyItem)}`);
+                                        }}
+                                    >
+                                        {historyItem}
+                                        <button
+                                            className="delete-btn"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                const updatedHistory = searchHistory.filter((_, i) => i !== index);
+                                                setSearchHistory(updatedHistory);
+                                                localStorage.setItem('searchHistory', JSON.stringify(updatedHistory));
+                                            }}
+                                        >
+                                            X
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <div className="mainpage-body">
+                {Array.from({ length: Math.ceil(news.length / 6) }).map((_, blockIndex) => (
+                    <div className="block" key={blockIndex}>
+                        {news.slice(blockIndex * 6, blockIndex * 6 + 6).map((item, index) => (
+                            <article key={index} className="article">
+                                <h2>{item.title}</h2>
+                                <p>{item.formattedPubDate}</p>
+                                <a
+                                    href={item.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="original-link-button"
+                                >
+                                    기사 원문 보러가기
+                                </a>
+                            </article>
+                        ))}
+                    </div>
+                ))}
+            </div>
+
+            <div className="mainpage-foot">
+                <button className="news-plus" onClick={handleLoadMore}>
+                    기사 더보기▼
+                </button>
+            </div>
+        </div>
+    );
+}
+
+export default MainPage;

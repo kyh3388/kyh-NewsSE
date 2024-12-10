@@ -1,0 +1,6 @@
+INDEX VERSION 1.4+C:\Users\kimmm\Desktop\kyh-NewsSE\NewsSE\.metadata\.plugins\org.eclipse.wst.jsdt.core\indexes
+4113014153.index
+2222232344.index
+607669700.index
+158374251.index
+3333386737.index

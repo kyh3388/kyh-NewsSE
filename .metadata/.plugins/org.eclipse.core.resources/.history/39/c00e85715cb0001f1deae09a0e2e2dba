@@ -1,0 +1,222 @@
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import './MainPage.css';
+
+/*************** 쿠키 관리 함수 ***************/
+function setCookie(name, value, days) {
+    const expires = new Date(Date.now() + days * 86400000).toUTCString();
+    document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
+}
+
+function getCookie(name) {
+    const cookies = document.cookie.split('; ');
+    const cookie = cookies.find(row => row.startsWith(`${name}=`));
+    return cookie ? decodeURIComponent(cookie.split('=')[1]) : null;
+}
+
+/*************** 시간 표시를 위한 함수 ***************/
+function formatTimeDifference(pubDate) {
+    const publishedDate = new Date(pubDate);
+    const now = new Date();
+
+    const publishedYear = publishedDate.getFullYear();
+    const publishedMonth = publishedDate.getMonth();
+    const publishedDay = publishedDate.getDate();
+
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+    const currentDay = now.getDate();
+
+    if (
+        publishedYear === currentYear &&
+        publishedMonth === currentMonth &&
+        publishedDay === currentDay
+    ) {
+        const diffInMs = now - publishedDate;
+        const diffInMinutes = Math.floor(diffInMs / 60000);
+
+        if (diffInMinutes < 1) return '방금 전';
+        if (diffInMinutes < 60) return `${diffInMinutes}분 전`;
+
+        const diffInHours = Math.floor(diffInMinutes / 60);
+        return `${diffInHours}시간 전`;
+    } else {
+        return `${publishedDate.getMonth() + 1}.${publishedDate.getDate()}`;
+    }
+}
+
+/*************** API 응답 데이터 처리 ***************/
+function decodeHtmlEntities(str) {
+    const parser = new DOMParser();
+    return parser.parseFromString(str, 'text/html').documentElement.textContent;
+}
+
+function MainPage() {
+    const [news, setNews] = useState([]);
+    const [page, setPage] = useState(1);
+    const displayCount = 36;
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchHistory, setSearchHistory] = useState([]);
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    // 초기 로딩 시 쿠키에서 검색 기록 불러오기
+    useEffect(() => {
+        const storedHistory = JSON.parse(getCookie('searchHistory') || '[]');
+        setSearchHistory(storedHistory);
+    }, []);
+
+    // 뉴스 데이터 요청
+    const fetchNews = (currentPage, query) => {
+        const start = (currentPage - 1) * displayCount + 1;
+        const searchTerm = query && query.trim() !== '' ? query : '기사';
+
+        axios
+            .get(`http://localhost:8080/searchNews?query=${searchTerm}&display=36&start=${start}`)
+            .then((response) => {
+                const processedNews = response.data.items.map((item) => ({
+                    ...item,
+                    title: decodeHtmlEntities(item.title),
+                    description: decodeHtmlEntities(item.description),
+                    formattedPubDate: formatTimeDifference(item.pubDate),
+                }));
+
+                setNews((prevNews) => {
+                    if (currentPage === 1) return processedNews;
+                    const combinedNews = [...prevNews, ...processedNews];
+                    return combinedNews.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+                });
+            })
+            .catch((error) => {
+                console.error('Error fetching news:', error);
+            });
+    };
+
+    // 초기 검색 데이터 로드
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const query = params.get('query');
+        if (!query) {
+            fetchNews(1, '기사');
+        } else {
+            setSearchQuery(query);
+            fetchNews(1, query);
+        }
+    }, [location.search]);
+
+    // 검색 버튼 클릭 이벤트
+    const handleSearch = () => {
+        if (searchQuery.trim() === '') return;
+
+        const updatedHistory = [searchQuery, ...searchHistory.slice(0, 4)];
+        setSearchHistory(updatedHistory);
+
+        // 쿠키에 검색 기록 저장
+        setCookie('searchHistory', JSON.stringify(updatedHistory), 30);
+
+        navigate(`?query=${encodeURIComponent(searchQuery.trim())}`);
+    };
+
+    // 검색 기록 클릭 시 처리
+    const handleHistoryClick = (query) => {
+        setSearchQuery(query);
+        fetchNews(1, query);
+        navigate(`?query=${encodeURIComponent(query)}`);
+    };
+
+    // 기사 더 보기
+    const handleLoadMore = () => {
+        const nextPage = page + 1;
+        setPage(nextPage);
+        fetchNews(nextPage, searchQuery);
+    };
+
+    return (
+        <div className="MainPage">
+            <div className="mainpage-head">
+                <h1 className="header-title">
+                    <a
+                        href="/"
+                        style={{ textDecoration: 'none', color: 'black' }}
+                    >
+                        News SE
+                    </a>
+                </h1>
+                <div className="search-box">
+                    <input
+                        type="text"
+                        className="search-text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                    <button
+                        type="button"
+                        className="search-button"
+                        onClick={handleSearch}
+                    />
+                </div>
+
+                {/* 검색 기록 표시 */}
+                <div className="search-history">
+                    <ul>
+                        {searchHistory.map((item, index) => (
+                            <li
+                                key={index}
+                                onClick={() => handleHistoryClick(item)}
+                                className="history-item"
+                            >
+                                {item}
+                                <button
+                                    className="delete-btn"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        const updatedHistory = searchHistory.filter((_, i) => i !== index);
+                                        setSearchHistory(updatedHistory);
+                                        setCookie('searchHistory', JSON.stringify(updatedHistory), 30);
+                                    }}
+                                >
+                                    X
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            </div>
+            <div className="mainpage-body">
+                {news.map((item, index) => (
+                    <div key={index}>
+                        <Link
+                            to="/extra-page"
+                            state={{
+                                title: item.title,
+                                pubDate: item.pubDate,
+                                description: item.description,
+                                link: item.link,
+                            }}
+                            style={{ textDecoration: 'none', color: 'black', fontWeight: 'bold' }}
+                        >
+                            <h2>{item.title}</h2>
+                        </Link>
+                        <p>{item.formattedPubDate}</p>
+                        <a
+                            href={item.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ textDecoration: 'none', color: 'blue' }}
+                        >
+                            기사 원문 보러가기
+                        </a>
+                    </div>
+                ))}
+            </div>
+            <div className="mainpage-foot">
+                <button className="news-plus" onClick={handleLoadMore}>
+                    기사 더보기
+                </button>
+            </div>
+        </div>
+    );
+}
+
+export default MainPage;

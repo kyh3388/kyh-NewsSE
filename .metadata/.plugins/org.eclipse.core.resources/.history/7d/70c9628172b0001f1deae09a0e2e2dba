@@ -1,0 +1,222 @@
+/* 전체 페이지 */
+.MainPage {
+	background-color: #EFEFEF;
+	display: flex;
+    flex-direction: column; /* 상하 배치 */
+    min-height:100vh; /* 최소 높이를 화면 크기로 설정 */
+    height: auto; /* 콘텐츠 높이에 맞게 확장 */
+    font-family: Arial, sans-serif; /* 전체 폰트 설정 */
+}
+
+/******************** head ********************/
+.mainpage-head {
+	display: flex;
+	justify-content: space-between;
+	align-items: center; 
+	padding: 10px 20px;
+	background-color: #4062DD;
+	
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 120px;
+	z-index: 1000; /* 다른 요소 위에 위치 */
+}
+
+/*사이트 이름*/
+.header-title {
+	font-size: 80px;
+	font-weight: bold;
+}
+
+/*검색 창*/
+.search-box {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start; /* 검색 버튼과 검색창 정렬 */
+	gap: 10px; /* 버튼과 입력창 사이 간격 */
+}
+
+.search-text {
+	padding: 8px;
+	font-size: 18px;
+	border: 1px solid #ccc;
+	border-radius: 5px;
+	width: 300px; /* 검색창의 너비 */
+}
+
+.search-button {
+	width: 40px;
+	height: 40px;
+	background-image: url('https://media.istockphoto.com/id/924437708/ko/%EB%B2%A1%ED%84%B0/%EB%8F%8B%EB%B3%B4%EA%B8%B0%EB%A5%BC-%EC%95%84%EC%9D%B4%EC%BD%98%EC%9D%84.jpg?s=612x612&w=0&k=20&c=fNuK4e0iNUFZ9BKGT9U6bH8OiSBEFM4vr0LjHIVjk78=');
+	background-size: cover;
+	background-position: center;
+	border: solid;
+	margin-right: 40px;
+	cursor: pointer;
+	border-radius: 20px;
+	
+}
+
+.search-history {
+    position: absolute; /* 검색창 아래에 고정 */
+    top: 40px; /* 검색창 아래 위치 조정 */
+    left: 0px; /* 검색 기록창 좌우 조절 */
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 315px; /* 검색창과 동일한 너비 설정 */
+    z-index: 100; /* 다른 요소 위에 표시 */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    
+    display: block; /* 기본적으로 숨김 */
+}
+
+
+.search-history ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.history-item {
+    display: flex; /* 삭제 버튼과 검색어를 나란히 배치 */
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    border-bottom: 1px solid #ddd;
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+    background-color: #fff;
+    transition: background-color 0.2s;
+}
+
+.history-item:hover {
+    background-color: #f1f1f1;
+}
+
+.delete-btn {
+    border: none;
+    background: none;
+    color: red;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.delete-btn:hover {
+    font-weight: bold;
+}
+
+
+/******************** body ********************/
+.mainpage-body {
+	margin-top: 150px;
+	flex: 1;
+	padding: 20px;
+	
+	display: flex; /* 플렉스 레이아웃 사용 */
+    flex-direction: column; /* 블록을 세로로 배치 */
+    gap: 20px; /* 블록 간격 */
+}
+
+/* 기사 블록 */
+.block {
+    margin: 0 auto; /* 중앙 정렬 */
+    padding: 15px;
+    background-color: #ffffff; /* 블록 배경 */
+    border-radius: 5px; /* 둥근 모서리 */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 블록 그림자 */
+    width: 90%; /* 블록 너비 */
+    max-width: 1200px; /* 최대 너비 제한 */
+}
+
+/* 블록 내부 그리드 */
+.grid-container {
+    display: grid; /* 그리드 레이아웃 */
+    grid-template-columns: repeat(2, 1fr); /* 2열 구성 */
+    grid-template-rows: repeat(3, auto); /* 3행 구성 */
+    gap: 10px; /* 카드 간격 */
+    padding: 10px;
+}
+
+/* 기사 카드 */
+.grid-item {
+    padding: 5px;
+}
+
+/* 기사 제목 */
+.grid-item h2 {
+    font-size: 24px;
+    font-weight: bold;
+    color: #343a40; /* 제목 색상 */
+    margin-bottom: 10px;
+    line-height: 1.4;
+    word-wrap: break-word; /* 긴 단어를 줄바꿈 */
+}
+
+/* 기사 카드 내 날짜와 버튼을 포함하는 컨테이너 */
+.grid-item-info {
+    display: flex; /* 플렉스 레이아웃 사용 */
+    justify-content: space-between; /* 좌우로 요소 배치 */
+    align-items: center; /* 수직 중앙 정렬 */
+    margin-bottom: 10px; /* 아래 여백 */
+}
+
+/* 기사 날짜 */
+.grid-item p {
+    font-size: 12px;
+    color: #868e96; /* 날짜 색상 */
+	margin: 0; /* 기본 여백 제거 */;
+}
+
+/* 기사 원문 버튼 */
+.original-link-button {
+	display: inline-block; /* 텍스트와 아이콘 정렬 */
+	align-items: center; /* 아이콘과 텍스트를 수직 중앙 정렬 */
+    justify-content: center; /* 텍스트 정렬 */
+    background-color: #EFEFEF; /* 버튼 배경색 */
+    color: black; /* 텍스트 색상 */
+    font-size: 14px; /* 텍스트 크기 */
+    font-weight: bold; /* 텍스트 굵기 */
+    padding: 5px 10px; /* 버튼 안쪽 여백 */
+    border: none; /* 테두리 제거 */
+    border-radius: 5px; /* 모서리를 둥글게 */
+    cursor: pointer; /* 클릭 가능하도록 커서 변경 */
+    text-decoration: none; /* 링크의 밑줄 제거 */
+    /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);  약간의 그림자 */
+    transition: background-color 0.3s ease; /* 호버 시 부드러운 색상 전환 */
+}
+
+
+
+/******************** foot ********************/
+.mainpage-foot {
+	padding: 10px
+}
+
+.news-plus {
+	width: 100%; /* 부모 컨테이너의 너비에 맞춤 */
+    height: 60px; /* 버튼 높이 */
+    background-color: #FFFFFF; /* 배경색 */
+    border: 2px solid #0099ff; /* 파란색 테두리 */
+    border-radius: 10px; /* 둥근 모서리 */
+    color: #666; /* 텍스트 색상 (회색) */
+    font-size: 24px; /* 텍스트 크기 */
+    font-weight: bold; /* 텍스트 굵기 */
+    display: flex; /* 내부 요소 중앙 정렬 */
+    justify-content: center; /* 가로 중앙 정렬 */
+    align-items: center; /* 세로 중앙 정렬 */
+    cursor: pointer; /* 클릭 가능하도록 커서 변경 */
+    position: relative; /* 아이콘 위치를 조정하기 위해 설정 */
+}
+
+
+
+
+
+
+
+
+
