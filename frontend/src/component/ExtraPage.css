@@ -1,0 +1,83 @@
+/* 전체 페이지 */
+.ExtraPage {
+	background-color: #f0f0f0;
+	display: flex;
+    flex-direction: column; /* 상하 배치 */
+    height: 100vh; /* 화면 전체 높이 */
+    font-family: Arial, sans-serif; /* 전체 폰트 설정 */
+    margin:0;
+}
+
+/******************** head ********************/
+.extrapage-head {
+	display: flex;
+	justify-content: space-between;
+	align-items: center; 
+	padding: 10px 20px;
+	background-color: #4062DD;
+	
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 120px; /* 헤더 높이 */
+	z-index: 1000; /* 다른 요소 위에 위치 */
+}
+
+/*사이트 이름*/
+.head-title {
+	font-size: 80px;
+	font-weight: bold;
+}
+
+
+
+/******************** body ********************/
+.extrapage-body {
+	flex: 1;
+	margin-top: 120px;
+	width: 96%;
+	margin-left: auto; /* 왼쪽 자동 여백 */
+	margin-right: auto; /* 오른쪽 자동 여백 */
+	margin-bottom: 10px;
+	padding: 20px;
+	
+	background-color: #ffffff; /* 본문 배경색 : 흰색*/
+	border-radius: 8px;
+}
+
+/* 제목 스타일 */
+.title {
+	font-size: 70px; /* 제목 폰트 크기 */
+	font-weight: bold; /* 굵게 설정 */
+	margin-bottom: 5px /* 아래 여백 */
+}
+
+/* 날짜 스타일 */
+.date {
+	font-size: 20px; /* 날짜 폰트 크기 */
+	color: gray; /* 날짜 텍스트 색상 */
+}
+
+/* 설명 스타일 */
+.description {
+	font-size: 30px; /* 설명 폰트 크기 */
+	line-height: 1.6; /* 줄 간격 설정 */
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
